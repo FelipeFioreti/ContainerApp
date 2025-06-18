@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consumo API - ViaCEP</title>
+</head>
+<style>
+    * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f3f4f6;
+    color: #333;
+}
+
+.botao-container {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.btn-consultar {
+    background-color: #2980b9;
+    color: white;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-consultar:hover {
+    background-color: #1c5985;
+}
+
+/* Container principal */
+.container {
+    max-width: 800px;
+    margin: 2rem auto;
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Título */
+.container h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #2c3e50;
+}
+
+/* Campo de CEP */
+.campo {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.5rem;
+}
+
+.campo label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.campo input {
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    transition: border-color 0.3s;
+}
+
+.campo input:focus {
+    border-color: #2980b9;
+    outline: none;
+}
+
+.retorno {
+    display: none; 
+    margin-top: 2rem;
+}
+
+.retorno.mostrar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.resposta, .adiconal {
+    display: flex;
+    flex-direction: column;
+}
+
+.resposta h3,
+.adiconal h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: #34495e;
+}
+
+.valor-resposta {
+    background-color: #ecf0f1;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.adiconal-input {
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.adiconal-input:focus {
+    border-color: #2980b9;
+    outline: none;
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+    .retorno {
+        grid-template-columns: 1fr;
+    }
+
+    .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .navbar .menu {
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+}
+</style>
+<body>
+    <main>
+
+        <section class="card container">
+            <h1>Consulta de Endereço ViaCEP</h1>
+
+            <div class="campo">
+                <label for="cep">CEP: </label>
+                <input type="text" name="cep" maxlength="8" placeholder="Apenas números Ex: 11110000" id="cep">
+            </div>
+
+            <div class="botao-container">
+                <button onclick="buscarCEP()" class="btn-consultar">Consultar Endereço</button>
+            </div>
+
+            <div id="retorno" class="retorno">
+
+                <div class="resposta">
+                    <h3>
+                        Logradouro
+                    </h3>
+
+                    <span id="logradouro" class="valor-resposta">
+
+                    </span>
+                </div>
+
+                <div class="resposta">
+                    <h3>
+                        Bairro
+                    </h3>
+
+                    <span id="bairro" class="valor-resposta">
+
+                    </span>
+                </div>
+
+                <div class="resposta">
+                    <h3>
+                        Cidade
+                    </h3>
+
+                    <span id="cidade" class="valor-resposta">
+
+                    </span>
+                </div>
+
+                <div class="resposta">
+                    <h3>
+                        Estado
+                    </h3>
+
+                    <span id="estado" class="valor-resposta">
+
+                    </span>
+                </div>
+
+            </div>
+        </section>
+    </main>
+</body>
+<script>
+    async function buscarCEP() {
+        const cep = document.getElementById('cep').value;
+        const retorno = document.getElementById('retorno');
+
+        if (cep.length !== 8 || isNaN(cep)) {
+            alert('CEP inválido! Deve conter 8 números.');
+            retorno.classList.remove('mostrar'); 
+            return;
+        }
+
+        try {
+            const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+            const data = await response.json();
+
+            if (data.erro) {
+                alert('CEP não encontrado!');
+                retorno.classList.remove('mostrar');
+                return;
+            }
+
+            document.getElementById('logradouro').textContent = data.logradouro || 'Não informado';
+            document.getElementById('bairro').textContent = data.bairro || 'Não informado';
+            document.getElementById('cidade').textContent = data.localidade || 'Não informado';
+            document.getElementById('estado').textContent = data.uf || 'Não informado';
+
+            retorno.classList.add('mostrar');
+        } catch (error) {
+            console.error('Erro ao buscar CEP:', error);
+            alert('Erro ao buscar CEP. Tente novamente mais tarde.');
+            retorno.classList.remove('mostrar');
+        }
+    }
+
+</script>
+</html>
